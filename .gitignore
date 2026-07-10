@@ -1,18 +1,30 @@
+# MCP 설정 파일
+.mcp.json
+
+# Claude 로컬 설정
+.claude/
+
 # Dependencies
 node_modules/
+package-lock.json
 
-# Build output
+# 캐시 파일 / 빌드 출력
+.cache/
+.vite/
 dist/
 dist-ssr/
 
-# Logs
-logs
+# 환경 변수
+.env
+.env.local
+.env.*.local
+
+# OS / IDE 파일
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# 로그 파일
 *.log
 npm-debug.log*
-
-# Editor / OS
-.vscode/*
-!.vscode/extensions.json
-.idea
-.DS_Store
-*.local
