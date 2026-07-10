@@ -28,3 +28,6 @@ Thumbs.db
 # 로그 파일
 *.log
 npm-debug.log*
+
+# 로컬 전용 파일
+프롬프트.txt
