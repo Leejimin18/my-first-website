@@ -1,0 +1,99 @@
+== Once Upon A Time (동화책 리뷰 서비스) DB 구조 정리 ==
+
+사용자 정보 (ouat_users 테이블)
+- 로그인/회원가입, 프로필, 마이페이지 화면에서 필요한 정보들:
+  * 사용자 번호 (id): 자동으로 1, 2, 3... 증가
+  * 사용자명 (username): (@ 표시되는 고유 아이디)
+  * 이메일 (email): (이메일 로그인 시 사용, 중복 불가)
+  * 비밀번호 (password): (이메일 로그인 시 사용, 암호화 저장)
+  * 표시 이름 (display_name): (프로필에 보이는 실제 이름/닉네임)
+  * 프로필 사진 (profile_image): (프로필 이미지 경로)
+  * 소셜 로그인 제공자 (login_provider): (이메일 / 카카오 / 구글 중 하나)
+  * 소셜 로그인 고유 ID (social_id): (카카오·구글 로그인 시 발급되는 고유 식별자, 이메일 로그인 시 비어있음)
+  * 가입일 (created_at): (언제 가입했는지)
+
+도서 정보 (ouat_books 테이블)
+- 메인 페이지 분류/배너, 검색, 게시물 작성 시 필요한 정보들:
+  * 도서 번호 (id): 자동으로 1, 2, 3... 증가
+  * 제목 (title): (동화책 제목 - 검색 시 사용)
+  * 저자 (author): (동화책 저자 - 검색 시 사용)
+  * 출판사 (publisher): (출판사명)
+  * 표지 사진 (cover_image): (책 표지 이미지 경로)
+  * 연령 분류 (age_group): (0~3세 / 4~7세 / 8~12세 중 하나 - 메인 페이지 탐색 탭 분류 기준)
+  * 신간 여부 (is_new): (true/false - 메인 페이지 홍보 배너 노출 대상 여부)
+  * 등록일 (created_at): (도서 정보가 처음 등록된 날짜, 중복 등록 방지용 조회 기준)
+
+리뷰 게시물 정보 (ouat_posts 테이블)
+- 게시물 목록/상세/작성 페이지에서 필요한 정보들:
+  * id: 게시물 고유번호, 자동으로 1, 2, 3... 증가
+  * user_id: 작성자 ID (ouat_users 테이블과 연결)
+  * book_id: 리뷰 대상 도서 ID (ouat_books 테이블과 연결)
+  * rating: 별점 (1~5점)
+  * one_line_review: 한 줄 평
+  * content: 읽은 후 소감 내용
+  * view_count: 조회수 (게시물 상세 조회 시마다 증가, 목록 정렬 시 사용)
+  * likes_count: 추천(좋아요) 수 (현재 추천 개수를 숫자로 저장, 목록 상단 강조 및 정렬 기준)
+  * created_at: 작성일 (최신순/오래된순 정렬 기준)
+  * image_url: (작성 시 선택한 Unsplash 이미지의 URL 링크)
+  * updated_at: 수정일 (게시물 수정 시 갱신)
+
+리뷰 작성 방식:
+- 1단계: 도서 제목/저자로 검색
+- 2단계: 검색 결과에 기존 등록된 도서가 있으면 선택 (ouat_books 테이블 중복 등록 방지)
+- 3단계: 검색 결과가 없으면 신규 도서 정보(표지 사진, 제목, 저자, 출판사) 직접 입력 후 ouat_books 테이블에 새로 등록
+- 4단계: 선택/등록한 book_id를 기준으로 별점, 한 줄 평, 읽은 후 소감을 입력해 ouat_posts 테이블에 저장
+
+댓글 정보 (ouat_comments 테이블)
+- 게시물 상세 페이지 댓글을 위한 정보들:
+  * id: 댓글 번호, 자동으로 1, 2, 3... 증가
+  * post_id: 댓글이 달린 게시물 ID (ouat_posts 테이블과 연결)
+  * user_id: 댓글 작성자 ID (ouat_users 테이블과 연결)
+  * content: 댓글 내용
+  * created_at: 댓글 작성일
+
+추천(좋아요) 정보 (ouat_likes 테이블)
+- 게시물 추천 기록과 마이페이지 "추천 누른 게시글" 목록을 위해 별도 테이블로 관리:
+  * id: 추천 기록 번호, 자동으로 1, 2, 3... 증가
+  * user_id: 추천을 누른 사용자 ID (ouat_users 테이블과 연결)
+  * post_id: 추천 받은 게시물 ID (ouat_posts 테이블과 연결)
+  * created_at: 추천을 누른 시각
+  * 제약: (user_id, post_id) 조합은 중복 불가 - 한 사용자가 같은 게시물에 중복 추천 불가
+  * 추천/추천 취소가 발생할 때마다 ouat_posts 테이블의 likes_count도 함께 갱신
+
+팔로우 정보 (ouat_follows 테이블) - 3차 개발 항목
+- 관심 작가/사용자 팔로우 시스템을 위한 정보들:
+  * id: 팔로우 기록 번호, 자동으로 1, 2, 3... 증가
+  * follower_id: 팔로우를 거는 사용자 ID (ouat_users 테이블과 연결)
+  * following_id: 팔로우를 받는 사용자 ID (ouat_users 테이블과 연결)
+  * created_at: 팔로우한 시각
+  * 제약: (follower_id, following_id) 조합은 중복 불가
+
+알림 정보 (ouat_notifications 테이블)
+- 알림 페이지에서 필요한 정보들:
+  * id: 알림 번호, 자동으로 1, 2, 3... 증가
+  * user_id: 알림을 받는 사용자 ID (ouat_users 테이블과 연결)
+  * type: 알림 종류 (comment: 댓글 / like: 추천 / follow: 팔로우)
+  * actor_id: 알림을 발생시킨 사용자 ID (댓글을 달거나 추천/팔로우를 누른 사람, ouat_users 테이블과 연결)
+  * post_id: 관련 게시물 ID (ouat_posts 테이블과 연결, 팔로우 알림인 경우 비어있음)
+  * is_read: 읽음 여부 (읽지 않은 알림 표시용)
+  * created_at: 알림 발생 시각
+
+신고 정보 (ouat_reports 테이블)
+- 게시물 상세 페이지의 부적절한 게시글/댓글 신고 기능을 위한 정보들:
+  * id: 신고 번호, 자동으로 1, 2, 3... 증가
+  * reporter_id: 신고한 사용자 ID (ouat_users 테이블과 연결)
+  * target_type: 신고 대상 종류 (post: 게시물 / comment: 댓글)
+  * target_id: 신고 대상의 ID (target_type에 따라 ouat_posts 또는 ouat_comments 테이블의 id를 가리킴)
+  * reason: 신고 사유
+  * created_at: 신고 접수 시각
+
+테이블 연결 관계 정리
+- 사용자-게시물: 한 사용자가 여러 리뷰 게시물 작성 가능 (ouat_users 1 : N ouat_posts)
+- 도서-게시물: 한 도서에 여러 사용자의 리뷰가 달릴 수 있음 (ouat_books 1 : N ouat_posts)
+- 게시물-댓글: 한 게시물에 여러 사용자가 댓글 가능, 한 사용자가 여러 게시물에 댓글 가능 (ouat_posts 1 : N ouat_comments, ouat_users 1 : N ouat_comments)
+- 게시물-추천: 한 게시물에 여러 사용자가 추천 가능, 한 사용자가 여러 게시물 추천 가능 (ouat_posts 1 : N ouat_likes, ouat_users 1 : N ouat_likes) - ouat_likes 테이블 집계값이 ouat_posts.likes_count에 반영됨
+- 사용자-사용자(팔로우): 한 사용자가 여러 사용자를 팔로우하고, 여러 사용자에게 팔로우 받을 수 있음 (ouat_users N : N ouat_users, ouat_follows 테이블로 연결)
+- 사용자-알림: 한 사용자가 여러 알림을 받을 수 있고, 각 알림은 댓글/추천/팔로우 행위를 한 사용자(actor_id)와 연결됨
+- 사용자-신고: 한 사용자가 여러 게시물/댓글을 신고 가능, 신고 대상은 target_type에 따라 ouat_posts 또는 ouat_comments를 참조
+
+== Once Upon A Time DB 구조 정리 완료 ==
